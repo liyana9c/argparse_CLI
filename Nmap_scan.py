@@ -2,6 +2,9 @@ import os
 import subprocess
 import csv
 from libnmap.parser import NmapParser
+from rich.console import Console
+
+console = Console()
 
 def execute_nmap_scan(target):
     """
@@ -13,15 +16,21 @@ def execute_nmap_scan(target):
     Returns:
     - xml_file: Path to the XML file containing the Nmap scan results
     """
-    print("Executing Nmap scan...")
+    console.print("[bold green]-> Executing Nmap scan...[/bold green]🔍")
+    print('\n')
+    console.print('[green]********************************************** Nmap Scan Results ********************************************[/green]')
+    print('\n')
     xml_file = "scan_results.xml"
     command = f"nmap -sV --script=vulners -oX {xml_file} {target}"
     try:
         subprocess.run(command, shell=True, check=True)
-        print("Nmap scan completed successfully.")
+        print('\n')
+        console.print('[green]*******************************************************************************************************************[/green]')
+        print('\n')
+        console.print("[green]-> Nmap scan completed successfully.[/green] ")
         return xml_file
     except subprocess.CalledProcessError as e:
-        print(f"Error executing Nmap scan: {e}")
+        console.print("[red]-> Error ❌  executing Nmap scan:[/red] [i]{}[/i]".format(e))
         return None
 
 def parse_nmap_scan_results(xml_file):
@@ -34,8 +43,9 @@ def parse_nmap_scan_results(xml_file):
     Returns:
     - parsed_results: Dictionary containing parsed scan results
     """
-    print("Parsing Nmap scan results...")
+    console.print("[green]-> Parsing Nmap scan results... [/green]🕵️‍♂️")
     parsed_results = {}
+        
     try:
         if os.path.exists(xml_file):  # Check if the XML file exists
             nmap_report = NmapParser.parse_fromfile(xml_file)
@@ -59,13 +69,13 @@ def parse_nmap_scan_results(xml_file):
                         'vulnerabilities': vulnerabilities
                     })
                 parsed_results[ip_address] = ports
-            print("Nmap scan results parsed successfully.")
+            console.print("[green]-> Nmap scan results parsed successfully.[/green] 👍")
             return parsed_results
         else:
-            print(f"Error: {xml_file} not found.")
+            console.print(f"[red]-> Error:[i] {xml_file} not found[i].[/red] ❌ ")
             return None
     except Exception as e:
-        print(f"Error parsing Nmap scan results: {e}")
+        console.print(f"[red]-> Error ❌  parsing Nmap scan results: [/red][i{e}[/i]")
         return None
 
 def parse_vulnerabilities(output):
@@ -103,7 +113,8 @@ def save_scan_results_to_csv(parsed_results, exploitable_csv_file, non_exploitab
     Returns:
     - Tuple containing paths of the saved CSV files
     """
-    print("Saving scan results to CSV...")
+    
+    console.print("[green]-> Saving scan results to CSV...[/green] ")
     try:
         exploitable_fieldnames = ['IP Address', 'Port', 'Service', 'Version', 'Vulnerability IDs']
         non_exploitable_fieldnames = ['IP Address', 'Port', 'Service', 'Version', 'Vulnerability IDs']
@@ -144,10 +155,10 @@ def save_scan_results_to_csv(parsed_results, exploitable_csv_file, non_exploitab
                             'Vulnerability IDs': ','.join(non_exploitable_vulns)
                         })
 
-        print(f"Scan results saved to {exploitable_csv_file} and {non_exploitable_csv_file}")
+        console.print(f"[green]-> Scan results saved to {exploitable_csv_file} and {non_exploitable_csv_file}[/green] 👍")
         return exploitable_csv_file, non_exploitable_csv_file
     except Exception as e:
-        print(f"Error saving scan results to CSV: {e}")
+        console.print(f"❌[red]-> Error saving scan results to CSV:[red][i] {e}[/i]")
         return None, None
 
 def save_complete_results_to_csv(xml_file, complete_csv_file):
@@ -161,7 +172,7 @@ def save_complete_results_to_csv(xml_file, complete_csv_file):
     Returns:
     - Path of the saved CSV file
     """
-    print("Saving output to CSV...")
+    console.print(f"[green]-> Saving output to CSV...[/green]")
     try:
         with open(complete_csv_file, mode='w', newline='') as csv_file:
             writer = csv.writer(csv_file)
@@ -172,10 +183,10 @@ def save_complete_results_to_csv(xml_file, complete_csv_file):
                         output = script.get("output")
                         writer.writerow([output])
 
-        print(f"Output saved to {complete_csv_file}")
+        console.print(f"[green]-> Output saved to {complete_csv_file}[/green]👍")
         return complete_csv_file
     except Exception as e:
-        print(f"Error saving output to CSV: {e}")
+        console.print(f"❌ [red]-> Error saving output to CSV: [red][i]{e}[/i]")
         return None
 
 def Nmap_main(target):
@@ -196,7 +207,7 @@ def Nmap_main(target):
             save_complete_results_to_csv(xml_file, complete_csv_file)
             return exploitable_csv_file, non_exploitable_csv_file, complete_csv_file
     else:
-        print("Nmap scan failed. Please check your input and try again.")
+        console.print("❌ [red]-> Nmap scan failed. Please check your input and try again.[red]")
         return None, None, None
 
 if __name__ == "__main__":
