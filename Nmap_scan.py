@@ -18,7 +18,7 @@ def execute_nmap_scan(target):
     """
     console.print("[bold green]-> Executing Nmap scan...[/bold green]🔍")
     print('\n')
-    console.print('[green]********************************************** Nmap Scan Results ********************************************[/green]')
+    console.print('[green]*******************************************************************************************************************[/green]')
     print('\n')
     xml_file = "scan_results.xml"
     command = f"nmap -sV --script=vulners -oX {xml_file} {target}"

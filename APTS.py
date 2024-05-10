@@ -5,9 +5,11 @@ from rich.console import Console
 from Nmap_scan import Nmap_main
 from rich.theme import Theme
 
+console = Console()
 
-# ASCII art definition
-ascii_art = """
+
+def print_ascii_art():
+    ascii_art = """
                                                                                                
                                                                                                
                AAA               PPPPPPPPPPPPPPPPP   TTTTTTTTTTTTTTTTTTTTTTT   SSSSSSSSSSSSSSS 
@@ -25,12 +27,13 @@ ascii_art = """
    A:::::A             A:::::A   PP::::::PP                TT:::::::TT      SSSSSSS     S:::::S
   A:::::A               A:::::A  P::::::::P                T:::::::::T      S::::::SSSSSS:::::S
  A:::::A                 A:::::A P::::::::P                T:::::::::T      S:::::::::::::::SS 
-AAAAAAA                   AAAAAAAPPPPPPPPPP                TTTTTTTTTTT       SSSSSSSSSSSSSSS   
-                                                                                               
+AAAAAAA                   AAAAAAAPPPPPPPPPP                TTTTTTTTTTT       SSSSSSSSSSSSSSS                                                                    
                                
 """
+    print(ascii_art)
+    console.rule()
+    print("\n")
 
-console = Console()
 
 def scan_command(args):
     exploitable_csv, non_exploitable_csv, complete_results_csv = Nmap_main(args.ip_address)
@@ -51,11 +54,11 @@ custom_theme = Theme({
 # Create a console with the custom theme
 console = Console(theme=custom_theme)
 
-def open_command(args):
+def print_csv_as_table(file_name):
     try:
-        with open(args.file_name, 'r') as file:
+        with open(file_name, 'r') as file:
             csv_reader = csv.DictReader(file)
-            table = Table(title=f"[bold green]Results from {args.file_name}[/bold green]", show_header=True, header_style="table.header")
+            table = Table(title=f"[bold green]Results from {file_name}[/bold green]", show_header=True, header_style="table.header")
 
             # Add columns to the table
             table.add_column("IP Address", style="white")
@@ -78,17 +81,29 @@ def open_command(args):
 
             console.print(table)
     except FileNotFoundError:
-        console.print(f"[error]File '{args.file_name}' not found.[/error]")
+        console.print(f"[error]File '{file_name}' not found.[/error]")
     except Exception as e:
         console.print(f"[error]Error opening file: {e}[/error]")
 
 
+def open_command(args):
+    if (args.file_name == 'Exploitable.csv' or args.file_name == 'Non_Exploitable.csv' ):
+        print_csv_as_table(args.file_name)
+    elif args.file_name == 'complete_results.csv':
+        print_csv(args.file_name)
+    else:
+        console.print(f"[error]Invalid file name '{args.file_name}'.[/error]")
+        console.print("[info]Please provide a valid file name: 'Exploitable.csv', 'Non_Exploitable.csv', or 'complete_results.csv'[/info]")
+
+
 def open_all_command(args):
-    console.print("\n[bold magenta]Exploitable Results:[/bold magenta]")
-    print_csv('Exploitable.csv')
-    console.print("\n[bold magenta]Non-Exploitable Results:[/bold magenta]")
-    print_csv('Non_Exploitable.csv')
-    console.print("\n[bold magenta]Complete Results:[/bold magenta]")
+    print_csv_as_table('Exploitable.csv')
+    console.rule()
+    print("\n")
+    print_csv_as_table('Non_Exploitable.csv')
+    console.rule()
+    print("\n")
+    console.print("[bold magenta]Complete results[/bold magenta]")
     print_csv('complete_results.csv')
 
 def print_csv(file_name):
@@ -108,19 +123,24 @@ def main():
 
     args = parser.parse_args()
 
-    if args.ip_address:
-        
+    if args.ip_address:   
         scan_command(args)
-    elif args.file_name:
-        print(ascii_art)
+        console.rule()
+        print("\n")
+    if args.file_name:
         open_command(args)
-    elif args.OpenAll:
+        console.rule()
+        print("\n")
+    if args.OpenAll:
         open_all_command(args)
-    else:
-        console.print("[bold red]No arguments provided. Please provide an IP address to scan.[/bold red]")
+        console.rule()
+        print("\n")
+    if not args.ip_address and not args.file_name and not args.OpenAll:
+        console.print("[bold red]No arguments provided. [/bold red]")
         parser.print_help()
 
    
 
 if __name__ == '__main__':
+    print_ascii_art()
     main()
