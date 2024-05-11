@@ -120,9 +120,12 @@ def main():
     parser.add_argument('--Sc', '--Scan', dest='ip_address', help='IP address to scan')
     parser.add_argument('--O', '--Open', dest='file_name', choices=['Exploitable.csv', 'Non_Exploitable.csv', 'complete_results.csv'], help='Open a report file [.csv]')
     parser.add_argument('--Oa', '--OpenAll', dest='OpenAll', action='store_true', help='Open all CSV files')
+    parser.add_argument('--X', '--XBan', dest='No_Banner', action='store_true', help='Disable the banner')
 
     args = parser.parse_args()
 
+    if not args.No_Banner:
+        print_ascii_art()
     if args.ip_address:   
         scan_command(args)
         console.rule()
@@ -142,5 +145,4 @@ def main():
    
 
 if __name__ == '__main__':
-    print_ascii_art()
     main()
